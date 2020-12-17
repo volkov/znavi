@@ -1,6 +1,6 @@
-package org.jetbrains.plugins.template.services
+package com.github.volkov.znavi.services
 
-import org.jetbrains.plugins.template.MyBundle
+import com.github.volkov.znavi.MyBundle
 
 class MyApplicationService {
 
