@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.github.volkov.znavi</id>
-    <name>znavi</name>
+    <name>Znavi</name>
     <vendor>volkov</vendor>
 
     <!-- Product and plugin compatibility requirements -->
@@ -16,4 +16,10 @@
         <listener class="com.github.volkov.znavi.listeners.MyProjectManagerListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
+    <actions>
+        <action id="com.github.volkov.znavi.PopupAction" class="com.github.volkov.znavi.PopupAction" text="Znavi"
+                description="Znavi popup action">
+            <add-to-group group-id="ToolsMenu" anchor="first"/>
+        </action>
+    </actions>
 </idea-plugin>
