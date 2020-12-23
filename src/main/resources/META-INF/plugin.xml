@@ -17,9 +17,10 @@
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
     <actions>
-        <action id="com.github.volkov.znavi.PopupAction" class="com.github.volkov.znavi.PopupAction" text="Znavi"
-                description="Znavi popup action">
+        <action id="com.github.volkov.znavi.PopupAction" class="com.github.volkov.znavi.PopupAction" text="ZNavi"
+                description="Navigation">
             <add-to-group group-id="ToolsMenu" anchor="first"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl Y"/>
         </action>
     </actions>
 </idea-plugin>
