@@ -155,7 +155,7 @@ class ShowUsagesTableCellRenderer implements TableCellRenderer {
           SimpleTextAttributes attributes =
             text.length == 0 ? SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(-1, new Color(0x808080), null, null) :
             getAttributes(isSelected, fileBgColor, selectionBg, selectionFg, text[0]);
-          origin.append("| Current", attributes);
+          origin.append("| Current", attributes); //fixme get this
           origin.appendTextPadding(JBUIScale.scale(45));
           panel.add(origin, BorderLayout.EAST);
         }

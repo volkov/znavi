@@ -410,7 +410,13 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                     synchronized (usages) {
 
                         System.out.println("###Print usages");
-                        for (Usage usage : usages) {
+                        int selfUsage = -1;
+                        for (int i = 0; i < usages.size(); i++) {
+                            Usage usage = usages.get(i);
+                            if (usageView.isOriginUsage(usage)) {
+                                selfUsage = i;
+                                System.out.println("self " + usage); //fixme from here
+                            }
                             System.out.println(usage);
                         }
 
@@ -446,8 +452,18 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                                     cancel(popup);
                                 }
                             }
-                        }
-                        else {
+                        } else if (selfUsage != -1) {
+                            int navigateIndex = (selfUsage + 1) % usages.size();
+                            Usage usageToNavigate = usages.get(navigateIndex);
+                            navigateAndHint(
+                                    project,
+                                    usageToNavigate,
+                                    popupPosition,
+                                    String.format("Usage %d of %d", navigateIndex + 1, usages.size()),
+                                    actionHandler
+                            );
+                            cancel(popup);
+                        } else {
                             boolean hasMore = visibleNodes.contains(Holder.MORE_USAGES_SEPARATOR_NODE);
                             statusConsumer.accept(getStatusString(false, hasMore, visibleNodes.size(), usages.size()));
                         }
