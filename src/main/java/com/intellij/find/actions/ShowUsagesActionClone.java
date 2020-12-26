@@ -83,8 +83,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import static com.intellij.find.actions.ShowUsagesActionHandler.getSecondInvocationTitle;
-import static com.intellij.find.actions.ShowUsagesActionHandler.showUsagesInMaximalScope;
+import static com.intellij.find.actions.ShowUsagesActionHandlerClone.getSecondInvocationTitle;
+import static com.intellij.find.actions.ShowUsagesActionHandlerClone.showUsagesInMaximalScope;
 
 public class ShowUsagesActionClone extends AnAction implements PopupAction, HintManagerImpl.ActionToIgnore {
     public static final String ID = "ShowUsages";
@@ -226,7 +226,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                 project, editor, popupPosition, getUsagesPageSize(), minWidth,
                 findUsagesManager.createPresentation(handler, options),
                 usageSearcher,
-                new ShowUsagesActionHandler() {
+                new ShowUsagesActionHandlerClone() {
 
                     @Override
                     public boolean isValid() {
@@ -277,7 +277,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                                           @NotNull IntRef minWidth,
                                           @NotNull UsageViewPresentation presentation,
                                           @NotNull UsageSearcher usageSearcher,
-                                          @NotNull ShowUsagesActionHandler actionHandler) {
+                                          @NotNull ShowUsagesActionHandlerClone actionHandler) {
         ApplicationManager.getApplication().assertIsDispatchThread();
         UsageViewSettings usageViewSettings = UsageViewSettings.getInstance();
         ShowUsagesSettings showUsagesSettings = ShowUsagesSettings.getInstance();
@@ -408,6 +408,12 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                     }
                     pingEDT.ping(); // repaint title
                     synchronized (usages) {
+
+                        System.out.println("###Print usages");
+                        for (Usage usage : usages) {
+                            System.out.println(usage);
+                        }
+
                         if (visibleNodes.isEmpty()) {
                             if (usages.isEmpty()) {
                                 String hint = UsageViewBundle.message("no.usages.found.in", searchScope.getDisplayName());
@@ -522,7 +528,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                                             @NotNull TitlePanel statusPanel,
                                             @NotNull IntRef minWidth,
                                             @NotNull Runnable showDialogAndFindUsagesRunnable,
-                                            @NotNull ShowUsagesActionHandler actionHandler) {
+                                            @NotNull ShowUsagesActionHandlerClone actionHandler) {
         ApplicationManager.getApplication().assertIsDispatchThread();
 
         PopupChooserBuilder<?> builder = JBPopupFactory.getInstance().createPopupChooserBuilder(table);
@@ -899,7 +905,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                                         @NotNull Usage usage,
                                         @NotNull RelativePoint popupPosition,
                                         @NotNull String hint,
-                                        @NotNull ShowUsagesActionHandler actionHandler) {
+                                        @NotNull ShowUsagesActionHandlerClone actionHandler) {
         usage.navigate(true);
         Editor newEditor = getEditorFor(usage);
         if (newEditor == null) return;
@@ -911,7 +917,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                              @NotNull RelativePoint popupPosition,
                              boolean isWarning,
                              @NotNull String hint,
-                             @NotNull ShowUsagesActionHandler actionHandler) {
+                             @NotNull ShowUsagesActionHandlerClone actionHandler) {
         Runnable runnable = () -> {
             if (!actionHandler.isValid()) {
                 return;
