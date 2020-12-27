@@ -20,12 +20,14 @@ import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.Usage;
 import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.usages.UsageToPsiElementProvider;
-import com.intellij.usages.impl.*;
+import com.intellij.usages.UsageView;
+import com.intellij.usages.impl.GroupNode;
+import com.intellij.usages.impl.UsageAdapter;
+import com.intellij.usages.impl.UsageNode;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,25 +36,24 @@ import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ShowUsagesTable extends JBTable implements DataProvider {
-  static final Usage MORE_USAGES_SEPARATOR = NullUsage.INSTANCE;
-  static final Usage USAGES_OUTSIDE_SCOPE_SEPARATOR = new UsageAdapter();
+public class ShowUsagesTable extends JBTable implements DataProvider {
+  final Usage MORE_USAGES_SEPARATOR = new UsageAdapter();
+  final Usage USAGES_OUTSIDE_SCOPE_SEPARATOR = new UsageAdapter();
+  final Usage USAGES_FILTERED_OUT_SEPARATOR = new UsageAdapter();
   private static final int MARGIN = 2;
 
   private final ShowUsagesTableCellRenderer myRenderer;
+  private final UsageView myUsageView;
 
-  ShowUsagesTable(@NotNull ShowUsagesTableCellRenderer renderer) {
+  ShowUsagesTable(@NotNull ShowUsagesTableCellRenderer renderer, @NotNull UsageView usageView) {
     myRenderer = renderer;
+    myUsageView = usageView;
     ScrollingUtil.installActions(this);
     HintUpdateSupply.installDataContextHintUpdateSupply(this);
   }
@@ -73,6 +74,9 @@ class ShowUsagesTable extends JBTable implements DataProvider {
     else if (LangDataKeys.POSITION_ADJUSTER_POPUP.is(dataId)) {
       return PopupUtil.getPopupContainerFor(this);
     }
+    else if (UsageView.USAGE_VIEW_KEY.is(dataId)) {
+      return myUsageView;
+    }
     return null;
   }
 
@@ -92,7 +96,7 @@ class ShowUsagesTable extends JBTable implements DataProvider {
   }
 
   @NotNull
-  Runnable prepareTable(final boolean previewMode, @NotNull Runnable appendMoreUsageRunnable, @NotNull Runnable showInMaximalScopeRunnable) {
+  Runnable prepareTable(@NotNull Runnable appendMoreUsageRunnable, @NotNull Runnable showInMaximalScopeRunnable) {
     SpeedSearchBase<JTable> speedSearch = new MySpeedSearch(this);
     speedSearch.setComparator(new SpeedSearchComparator(false));
 
@@ -107,10 +111,12 @@ class ShowUsagesTable extends JBTable implements DataProvider {
     final AtomicReference<java.util.List<Object>> selectedUsages = new AtomicReference<>();
     final AtomicBoolean moreUsagesSelected = new AtomicBoolean();
     final AtomicBoolean outsideScopeUsagesSelected = new AtomicBoolean();
+    final AtomicReference<ShowUsagesActionClone.FilteredOutUsagesNode> filteredOutUsagesSelected = new AtomicReference<>();
     getSelectionModel().addListSelectionListener(e -> {
       selectedUsages.set(null);
       outsideScopeUsagesSelected.set(false);
       moreUsagesSelected.set(false);
+      filteredOutUsagesSelected.set(null);
       java.util.List<Object> usages = null;
 
       for (int i : getSelectedRows()) {
@@ -122,29 +128,35 @@ class ShowUsagesTable extends JBTable implements DataProvider {
             usages = null;
             break;
           }
-          else if (usage == MORE_USAGES_SEPARATOR) {
+          if (usage == MORE_USAGES_SEPARATOR) {
             moreUsagesSelected.set(true);
             usages = null;
             break;
           }
-          else {
-            if (usages == null) usages = new ArrayList<>();
-            usages.add(usage instanceof UsageInfo2UsageAdapter ? ((UsageInfo2UsageAdapter)usage).getUsageInfo().copy() : usage);
+          if (usage == USAGES_FILTERED_OUT_SEPARATOR) {
+            filteredOutUsagesSelected.set((ShowUsagesActionClone.FilteredOutUsagesNode)value);
+            usages = null;
+            break;
           }
+          if (usages == null) usages = new ArrayList<>();
+          usages.add(usage instanceof UsageInfo2UsageAdapter ? ((UsageInfo2UsageAdapter)usage).getUsageInfo().copy() : usage);
         }
       }
 
       selectedUsages.set(usages);
     });
 
-    final Runnable itemChosenCallback = () -> {
+    return () -> {
       if (moreUsagesSelected.get()) {
         appendMoreUsageRunnable.run();
         return;
       }
-
       if (outsideScopeUsagesSelected.get()) {
         showInMaximalScopeRunnable.run();
+        return;
+      }
+      if (filteredOutUsagesSelected.get() != null) {
+        filteredOutUsagesSelected.get().onSelected();
         return;
       }
 
@@ -160,27 +172,12 @@ class ShowUsagesTable extends JBTable implements DataProvider {
         }
       }
     };
+  }
 
-    if (previewMode) {
-      addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseReleased(MouseEvent e) {
-          if (UIUtil.isActionClick(e, MouseEvent.MOUSE_RELEASED) && !UIUtil.isSelectionButtonDown(e) && !e.isConsumed()) {
-            itemChosenCallback.run();
-          }
-        }
-      });
-      addKeyListener(new KeyAdapter() {
-        @Override
-        public void keyPressed(KeyEvent e) {
-          if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            itemChosenCallback.run();
-          }
-        }
-      });
-    }
-
-    return itemChosenCallback;
+  public boolean isSeparatorNode(@Nullable Usage node) {
+    return node == USAGES_OUTSIDE_SCOPE_SEPARATOR
+           ||node == MORE_USAGES_SEPARATOR
+           ||node == USAGES_FILTERED_OUT_SEPARATOR;
   }
 
   @Nullable
@@ -199,7 +196,7 @@ class ShowUsagesTable extends JBTable implements DataProvider {
   }
 
   private static int calcColumnCount(@NotNull List<UsageNode> data) {
-    return data.isEmpty() || data.get(0) instanceof ShowUsagesAction.StringNode ? 1 : 4;
+    return data.isEmpty() || data.get(0) instanceof ShowUsagesActionClone.StringNode ? 1 : 4;
   }
 
   @NotNull
@@ -244,9 +241,9 @@ class ShowUsagesTable extends JBTable implements DataProvider {
     protected String getElementText(@NotNull Object element) {
       if (!(element instanceof UsageNode)) return element.toString();
       UsageNode node = (UsageNode)element;
-      if (node instanceof ShowUsagesAction.StringNode) return "";
+      if (node instanceof ShowUsagesActionClone.StringNode) return "";
       Usage usage = node.getUsage();
-      if (usage == MORE_USAGES_SEPARATOR || usage == USAGES_OUTSIDE_SCOPE_SEPARATOR) return "";
+      if (usage == getTable().MORE_USAGES_SEPARATOR || usage == getTable().USAGES_OUTSIDE_SCOPE_SEPARATOR || usage == getTable().USAGES_FILTERED_OUT_SEPARATOR) return "";
       GroupNode group = (GroupNode)node.getParent();
       String groupText = group == null ? "" : group.getGroup().getText(null);
       return groupText + usage.getPresentation().getPlainText();
@@ -267,7 +264,7 @@ class ShowUsagesTable extends JBTable implements DataProvider {
     }
   }
 
-  static class MyModel extends ListTableModel<UsageNode> implements ModelDiff.Model<Object> {
+  static final class MyModel extends ListTableModel<UsageNode> implements ModelDiff.Model<Object> {
     private MyModel(@NotNull List<UsageNode> data, int cols) {
       super(cols(cols), data, 0);
     }
@@ -287,7 +284,7 @@ class ShowUsagesTable extends JBTable implements DataProvider {
 
     @Override
     public void addToModel(int idx, Object element) {
-      UsageNode node = element instanceof UsageNode ? (UsageNode)element : ShowUsagesAction.createStringNode(element);
+      UsageNode node = element instanceof UsageNode ? (UsageNode)element : ShowUsagesActionClone.createStringNode(element);
 
       if (idx < getRowCount()) {
         insertRow(idx, node);

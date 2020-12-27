@@ -27,7 +27,7 @@ interface ShowUsagesActionHandlerClone {
     }
 
     static @Nullable String getSecondInvocationTitle(@NotNull ShowUsagesActionHandlerClone actionHandler) {
-        KeyboardShortcut shortcut = ShowUsagesAction.getShowUsagesShortcut();
+        KeyboardShortcut shortcut = ShowUsagesActionClone.getShowUsagesShortcut();
         if (shortcut == null) {
             return null;
         }

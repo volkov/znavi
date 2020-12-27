@@ -8,7 +8,7 @@ import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.find.actions.ShowUsagesAction.getUsagesPageSize;
+import static com.intellij.find.actions.ShowUsagesActionClone.getUsagesPageSize;
 
 final class ShowUsagesParameters {
 

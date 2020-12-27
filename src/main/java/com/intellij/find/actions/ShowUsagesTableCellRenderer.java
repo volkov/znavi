@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package com.intellij.find.actions;
 
@@ -60,28 +60,36 @@ class ShowUsagesTableCellRenderer implements TableCellRenderer {
 
     Color fileBgColor = getBackgroundColor(isSelected, usage);
     Color selectionBg = UIUtil.getListSelectionBackground(true);
-    Color selectionFg = UIUtil.getListSelectionForeground();
+    Color selectionFg = UIUtil.getListSelectionForeground(true);
     Color rowBackground = isSelected ? selectionBg : fileBgColor == null ? list.getBackground() : fileBgColor;
     Color rowForeground = isSelected ? selectionFg : list.getForeground();
 
-    if (usageNode == null || usageNode instanceof ShowUsagesAction.StringNode) {
+    if (usageNode == null || usageNode instanceof ShowUsagesActionClone.StringNode) {
       SimpleColoredComponent textChunks = new SimpleColoredComponent();
       textChunks.append(ObjectUtils.notNull(value, "").toString(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       return textComponentSpanningWholeRow(textChunks, rowBackground, rowForeground, column, list);
     }
-    if (usage == ShowUsagesTable.MORE_USAGES_SEPARATOR) {
+    if (usage == ((ShowUsagesTable)list).MORE_USAGES_SEPARATOR) {
       SimpleColoredComponent textChunks = new SimpleColoredComponent();
       textChunks.append("...<");
       textChunks.append("more usages", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       textChunks.append(">...");
       return textComponentSpanningWholeRow(textChunks, rowBackground, rowForeground, column, list);
     }
-    if (usage == ShowUsagesTable.USAGES_OUTSIDE_SCOPE_SEPARATOR) {
+    if (usage == ((ShowUsagesTable)list).USAGES_OUTSIDE_SCOPE_SEPARATOR) {
       SimpleColoredComponent textChunks = new SimpleColoredComponent();
       textChunks.append("...<");
       textChunks.append(UsageViewManagerImpl.outOfScopeMessage(myOutOfScopeUsages.get(), mySearchScope), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       textChunks.append(">...");
       return textComponentSpanningWholeRow(textChunks, rowBackground, rowForeground, column, list);
+    }
+    if (usage == ((ShowUsagesTable)list).USAGES_FILTERED_OUT_SEPARATOR) {
+      ShowUsagesActionClone.FilteredOutUsagesNode filtered = (ShowUsagesActionClone.FilteredOutUsagesNode)usageNode;
+      SimpleColoredComponent textChunks = new SimpleColoredComponent();
+      textChunks.append(filtered.toString(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      JComponent component = textComponentSpanningWholeRow(textChunks, rowBackground, rowForeground, column, list);
+      component.setToolTipText(filtered.getTooltip());
+      return component;
     }
 
     // want to be able to right-align the "current" word
@@ -155,7 +163,7 @@ class ShowUsagesTableCellRenderer implements TableCellRenderer {
           SimpleTextAttributes attributes =
             text.length == 0 ? SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(-1, new Color(0x808080), null, null) :
             getAttributes(isSelected, fileBgColor, selectionBg, selectionFg, text[0]);
-          origin.append("| Current", attributes); //fixme get this
+          origin.append("| Current", attributes);
           origin.appendTextPadding(JBUIScale.scale(45));
           panel.add(origin, BorderLayout.EAST);
         }
@@ -184,7 +192,7 @@ class ShowUsagesTableCellRenderer implements TableCellRenderer {
   }
 
   @NotNull
-  private static Component textComponentSpanningWholeRow(@NotNull SimpleColoredComponent chunks,
+  private static JComponent textComponentSpanningWholeRow(@NotNull SimpleColoredComponent chunks,
                                                          Color rowBackground,
                                                          Color rowForeground,
                                                          final int column,

@@ -1,4 +1,4 @@
-import io.gitlab.arturbosch.detekt.Detekt
+// import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.changelog.closure
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -13,9 +13,9 @@ plugins {
     // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
     id("org.jetbrains.changelog") version "0.6.2"
     // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
-    id("io.gitlab.arturbosch.detekt") version "1.14.2"
+    // id("io.gitlab.arturbosch.detekt") version "1.14.2"
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
-    id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
+    // id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
 }
 
 // Import variables from gradle.properties file
@@ -42,7 +42,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
+    //detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
 }
 
 // Configure gradle-intellij-plugin plugin.
@@ -60,30 +60,30 @@ intellij {
 
 // Configure detekt plugin.
 // Read more: https://detekt.github.io/detekt/kotlindsl.html
-detekt {
-    config = files("./detekt-config.yml")
-    buildUponDefaultConfig = true
-
-    reports {
-        html.enabled = false
-        xml.enabled = false
-        txt.enabled = false
-    }
-}
+// detekt {
+//    config = files("./detekt-config.yml")
+//    buildUponDefaultConfig = true
+//
+//    reports {
+//        html.enabled = false
+//        xml.enabled = false
+//        txt.enabled = false
+//    }
+// }
 
 tasks {
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
 
-    withType<Detekt> {
-        jvmTarget = "1.8"
-    }
+//    withType<Detekt> {
+//        jvmTarget = "1.8"
+//    }
 
     patchPluginXml {
         version(pluginVersion)
