@@ -399,7 +399,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
         if (!usageView.isDisposed()) {
           showPopupIfNeedTo(popup, parameters.popupPosition);
         }
-      }, 300, TimeUnit.MILLISECONDS);
+      }, 1000, TimeUnit.MILLISECONDS);
     }
 
     UsageNode USAGES_OUTSIDE_SCOPE_NODE = new UsageNode(null, table.USAGES_OUTSIDE_SCOPE_SEPARATOR);
@@ -412,7 +412,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
       List<Usage> copy;
       synchronized (usages) {
         // open up popup as soon as the first usage has been found
-        if (!popup.isVisible() && (usages.isEmpty() || !showPopupIfNeedTo(popup, parameters.popupPosition))) {
+        if (!popup.isVisible() && (usages.isEmpty() /*|| !showPopupIfNeedTo(popup, parameters.popupPosition)*/)) {
           return;
         }
         addUsageNodes(usageView.getRoot(), usageView, nodes);
