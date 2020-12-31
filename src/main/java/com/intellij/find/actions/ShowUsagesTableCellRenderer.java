@@ -132,6 +132,7 @@ class ShowUsagesTableCellRenderer implements TableCellRenderer {
         break;
       case FILE_GROUP_COL:
         appendGroupText(list, (GroupNode)usageNode.getParent(), panel, fileBgColor, isSelected);
+        //fixme should get usageNode or its parent
         break;
       case LINE_NUMBER_COL:
         if (text.length != 0) {

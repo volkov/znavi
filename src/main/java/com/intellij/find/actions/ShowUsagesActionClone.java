@@ -368,6 +368,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
 
     final SearchScope searchScope = actionHandler.getSelectedScope();
     final AtomicInteger outOfScopeUsages = new AtomicInteger();
+    //fixme renderer created here
     ShowUsagesTable table = new ShowUsagesTable(new ShowUsagesTableCellRenderer(usageView, outOfScopeUsages, searchScope), usageView);
     AsyncProcessIcon processIcon = new AsyncProcessIcon("xxx");
     TitlePanel statusPanel = new TitlePanel();
@@ -462,6 +463,8 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
     MessageBusConnection messageBusConnection = project.getMessageBus().connect(usageView);
     messageBusConnection.subscribe(UsageFilteringRuleProvider.RULES_CHANGED, () -> rulesChanged(usageView, pingEDT, popup));
 
+
+    Map<Usage, UsageNode> usageNodes = new HashMap<>();
     Processor<Usage> collect = usage -> {
       if (!UsageViewManagerImpl.isInScope(usage, searchScope)) {
         if (outOfScopeUsages.getAndIncrement() == 0) {
@@ -473,7 +476,8 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
       synchronized (usages) {
         if (visibleUsages.size() >= parameters.maxUsages) return false;
         UsageNode nodes = ReadAction.compute(() -> usageView.doAppendUsage(usage));
-        usages.add(usage);
+        usageNodes.put(usage, nodes);
+        usages.add(usage);  //fixme add to map and read later
         if (nodes != null) {
           visibleUsages.add(nodes.getUsage());
           boolean continueSearch = true;
@@ -504,9 +508,12 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
         synchronized (usages) {
           System.out.println("### Log znavi usages");
           int selfUsageIndex = -1;
+          usages.sort(Comparator.comparing(a -> getUsageString(usageNodes, a)));
+
           for (int i = 0; i < usages.size(); i++) {
             Usage usage = usages.get(i);
-            System.out.println(usage);
+            String nodeString = getUsageString(usageNodes, usage);
+            System.out.println(nodeString);
             if (usageView.isOriginUsage(usage)) {
               selfUsageIndex = i;
             }
@@ -560,6 +567,24 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
       },
       project.getDisposed()
     ));
+  }
+
+  @NotNull
+  private static String getUsageString(Map<Usage, UsageNode> usageNodes, Usage usage) {
+    UsageNode node = usageNodes.get(usage);
+    String nodeString = nodeToString((GroupNode) node.getParent()) + "|" + usage;
+    return nodeString;
+  }
+
+  private static String nodeToString(GroupNode node) {
+    if (node == null) {
+      return "";
+    }
+    UsageGroup group = node.getGroup();
+    if (group == null) {
+      return "";
+    }
+    return nodeToString((GroupNode) node.getParent()) + "|" + group.getText(null);  //TODO unimplemnted
   }
 
   private static void toggleFilters(@NotNull List<? extends ToggleAction> unselectedActions) {
