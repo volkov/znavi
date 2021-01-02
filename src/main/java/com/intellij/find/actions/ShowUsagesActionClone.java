@@ -72,7 +72,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.xml.util.XmlStringUtil;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,8 +94,10 @@ import static org.jetbrains.annotations.Nls.Capitalization.Sentence;
 
 public class ShowUsagesActionClone extends AnAction implements PopupAction, HintManagerImpl.ActionToIgnore {
   public static final String ID = "ShowUsages";
+  private final int direction;
 
-  public ShowUsagesActionClone() {
+  public ShowUsagesActionClone(int direction) {
+    this.direction = direction;
     setInjectedContext(true);
   }
 
@@ -168,39 +169,39 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
     if (project == null) return;
 
     ShowUsagesActionState state = getState(project);
-    Runnable continuation = state.continuation;
-    if (continuation != null) {
-      state.continuation = null;
-      hideHints(); // This action is invoked when the hint is showing because it implements HintManagerImpl.ActionToIgnore
-      continuation.run();
-      return;
-    }
+//    Runnable continuation = state.continuation;
+//    if (continuation != null) {
+//      state.continuation = null;
+//      hideHints(); // This action is invoked when the hint is showing because it implements HintManagerImpl.ActionToIgnore
+//      continuation.run();
+//      return;
+//    }
 
     RelativePoint popupPosition = JBPopupFactory.getInstance().guessBestPopupLocation(e.getDataContext());
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     FeatureUsageTracker.getInstance().triggerFeatureUsed("navigation.goto.usages");
     if (Registry.is("ide.symbol.find.usages")) {
-      showSymbolUsages(project, e.getDataContext());
+      showSymbolUsages(project, e.getDataContext(), direction);
     }
     else {
-      showPsiUsages(project, e, popupPosition);
+      showPsiUsages(project, e, popupPosition, direction);
     }
   }
 
-  private static void showSymbolUsages(@NotNull Project project, @NotNull DataContext dataContext) {
-    showUsages(project, dataContext, ResolverKt.allTargets(dataContext));
+  private static void showSymbolUsages(@NotNull Project project, @NotNull DataContext dataContext, int direction) {
+    showUsages(project, dataContext, ResolverKt.allTargets(dataContext), direction);
   }
 
   @ApiStatus.Internal
   public static void showUsages(@NotNull Project project,
                                 @NotNull DataContext dataContext,
-                                @NotNull List<@NotNull TargetVariant> targetVariants) {
+                                @NotNull List<@NotNull TargetVariant> targetVariants, int direction) {
     Editor editor = dataContext.getData(CommonDataKeys.EDITOR);
     RelativePoint popupPosition = JBPopupFactory.getInstance().guessBestPopupLocation(dataContext);
     SearchScope searchScope = FindUsagesOptions.findScopeByName(project, dataContext, FindSettings.getInstance().getDefaultScopeName());
     findShowUsages(
       project, dataContext, targetVariants, FindBundle.message("show.usages.ambiguous.title"),
-      createVariantHandler(project, editor, popupPosition, searchScope)
+      createVariantHandler(project, editor, popupPosition, searchScope, direction)
     );
   }
 
@@ -208,7 +209,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
   private static UsageVariantHandler createVariantHandler(@NotNull Project project,
                                                           @Nullable Editor editor,
                                                           @NotNull RelativePoint popupPosition,
-                                                          @NotNull SearchScope searchScope) {
+                                                          @NotNull SearchScope searchScope, final int direction) {
     return new UsageVariantHandler() {
 
       @Override
@@ -221,7 +222,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
 
       @Override
       public void handlePsi(@NotNull PsiElement element) {
-        startFindUsages(element, popupPosition, editor);
+        startFindUsages(element, popupPosition, editor, direction);
       }
     };
   }
@@ -242,19 +243,20 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
     );
   }
 
-  private static void showPsiUsages(@NotNull Project project, @NotNull AnActionEvent e, @NotNull RelativePoint popupPosition) {
+  private static void showPsiUsages(@NotNull Project project, @NotNull AnActionEvent e, @NotNull RelativePoint popupPosition,
+                                    int direction) {
     UsageTarget[] usageTargets = e.getData(UsageView.USAGE_TARGETS_KEY);
     Editor editor = e.getData(CommonDataKeys.EDITOR);
     if (usageTargets == null) {
       FindUsagesAction.chooseAmbiguousTargetAndPerform(project, editor, element -> {
-        startFindUsages(element, popupPosition, editor);
+        startFindUsages(element, popupPosition, editor, direction);
         return false;
       });
     }
     else if (ArrayUtil.getFirstElement(usageTargets) instanceof PsiElementUsageTarget) {
       PsiElement element = ((PsiElementUsageTarget)usageTargets[0]).getElement();
       if (element != null) {
-        startFindUsages(element, popupPosition, editor);
+        startFindUsages(element, popupPosition, editor, direction);
       }
     }
   }
@@ -263,14 +265,15 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
     HintManager.getInstance().hideHints(HintManager.HIDE_BY_ANY_KEY, false, false);
   }
 
-  public static void startFindUsages(@NotNull PsiElement element, @NotNull RelativePoint popupPosition, @Nullable Editor editor) {
+  public static void startFindUsages(@NotNull PsiElement element, @NotNull RelativePoint popupPosition, @Nullable Editor editor,
+                                     int direction) {
     Project project = element.getProject();
     FindUsagesManager findUsagesManager = ((FindManagerImpl)FindManager.getInstance(project)).getFindUsagesManager();
     FindUsagesHandlerBase handler = findUsagesManager.getFindUsagesHandler(element, USAGES_WITH_DEFAULT_OPTIONS);
     if (handler == null) return;
     //noinspection deprecation
     FindUsagesOptions options = handler.getFindUsagesOptions(DataManager.getInstance().getDataContext());
-    showElementUsages(ShowUsagesParameters.initial(project, editor, popupPosition), createActionHandler(handler, options));
+    showElementUsages(ShowUsagesParameters.initial(project, editor, popupPosition), createActionHandler(handler, options), direction);
   }
 
   private static void rulesChanged(@NotNull UsageViewImpl usageView, @NotNull PingEDT pingEDT, JBPopup popup) {
@@ -351,7 +354,9 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
     };
   }
 
-  static void showElementUsages(@NotNull ShowUsagesParameters parameters, @NotNull ShowUsagesActionHandler actionHandler) {
+  static void showElementUsages(@NotNull ShowUsagesParameters parameters, @NotNull ShowUsagesActionHandler actionHandler,
+                                int direction) {
+    trace();
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     Project project = parameters.project;
@@ -447,7 +452,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
             // toggle back unselected toggle actions
             toggleFilters(unselectedActions);
             // and restart show usages in hope it will show filtered out items now
-            showElementUsages(parameters, actionHandler);
+            showElementUsages(parameters, actionHandler, direction);
           }
         });
       }
@@ -553,7 +558,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
               }
             }
           } else if (selfUsageIndex != -1) {
-            int navigateIndex = (selfUsageIndex + 1) % usages.size();
+            int navigateIndex = (selfUsageIndex + direction) % usages.size();
             Usage usageToNavigate = usages.get(navigateIndex);
             navigateAndHint(
                     usageToNavigate,
@@ -567,6 +572,10 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
       },
       project.getDisposed()
     ));
+  }
+
+  private static void trace() {
+    new RuntimeException().printStackTrace();
   }
 
   @NotNull
@@ -1056,6 +1065,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                            @Nls(capitalization = Sentence) @NotNull String hint,
                            @NotNull ShowUsagesParameters parameters,
                            @NotNull ShowUsagesActionHandler actionHandler) {
+    trace();
     Project project = parameters.project;
     Editor editor = parameters.editor;
 
@@ -1074,7 +1084,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
       );
 
       ShowUsagesActionState state = getState(project);
-      state.continuation = showUsagesInMaximalScopeRunnable(parameters, actionHandler);
+      //state.continuation = showUsagesInMaximalScopeRunnable(parameters, actionHandler);
       Runnable clearContinuation = () -> state.continuation = null;
       runWhenHidden(label, clearContinuation);
 
@@ -1154,7 +1164,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
 
   private static @NotNull Runnable showMoreUsagesRunnable(@NotNull ShowUsagesParameters parameters,
                                                           @NotNull ShowUsagesActionHandler actionHandler) {
-    return () -> showElementUsages(parameters.moreUsages(), actionHandler);
+    return () -> showElementUsages(parameters.moreUsages(), actionHandler, 1);
   }
 
   private static @NotNull Runnable showUsagesInMaximalScopeRunnable(@NotNull ShowUsagesParameters parameters,
@@ -1164,7 +1174,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
 
   private static void showUsagesInMaximalScope(@NotNull ShowUsagesParameters parameters,
                                                @NotNull ShowUsagesActionHandler actionHandler) {
-    showElementUsages(parameters, actionHandler.withScope(actionHandler.getMaximalScope()));
+    showElementUsages(parameters, actionHandler.withScope(actionHandler.getMaximalScope()), 1);
   }
 
   private static @NotNull Runnable showDialogAndRestartRunnable(@NotNull ShowUsagesParameters parameters,
@@ -1176,7 +1186,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                                            @NotNull ShowUsagesActionHandler actionHandler) {
     ShowUsagesActionHandler newActionHandler = actionHandler.showDialog();
     if (newActionHandler != null) {
-      showElementUsages(parameters, newActionHandler);
+      showElementUsages(parameters, newActionHandler, 1);
     }
   }
 
@@ -1212,15 +1222,4 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
     };
   }
 
-  /**
-   * @deprecated please use {@link #startFindUsages(PsiElement, RelativePoint, Editor)} overload
-   */
-  @Deprecated
-  @ScheduledForRemoval(inVersion = "2020.3")
-  public void startFindUsages(@NotNull PsiElement element,
-                              @NotNull RelativePoint popupPosition,
-                              @Nullable Editor editor,
-                              int maxUsages) {
-    startFindUsages(element, popupPosition, editor);
-  }
 }

@@ -7,4 +7,4 @@ import com.intellij.find.actions.ShowUsagesActionClone
  * Date: 12/19/20
  * Time: 9:05 AM
  */
-class PopupAction : ShowUsagesActionClone()
+class ZNaviDownAction : ShowUsagesActionClone(1)
