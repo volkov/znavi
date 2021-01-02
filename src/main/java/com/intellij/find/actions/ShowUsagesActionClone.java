@@ -1,6 +1,23 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.intellij.find.actions;
 
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.table.TableColumn;
+import java.awt.*;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
@@ -71,21 +88,6 @@ import com.intellij.util.concurrency.EdtScheduledExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.xml.util.XmlStringUtil;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableColumn;
-import java.awt.*;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.util.List;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static com.intellij.find.actions.ResolverKt.findShowUsages;
 import static com.intellij.find.actions.ShowUsagesActionHandler.getSecondInvocationHint;
@@ -557,8 +559,13 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
                 cancel(popup);
               }
             }
-          } else if (selfUsageIndex != -1) {
-            int navigateIndex = (selfUsageIndex + direction) % usages.size();
+          } else {
+            int navigateIndex;
+            if (selfUsageIndex == -1 && direction < 0) {
+              navigateIndex = usages.size() - 1;
+            } else {
+              navigateIndex = (selfUsageIndex + direction + usages.size()) % usages.size();
+            }
             Usage usageToNavigate = usages.get(navigateIndex);
             navigateAndHint(
                     usageToNavigate,
