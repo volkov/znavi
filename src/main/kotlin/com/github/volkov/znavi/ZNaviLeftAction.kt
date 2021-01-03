@@ -12,6 +12,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 
 import com.intellij.psi.*
 import com.intellij.ui.popup.PopupPositionManager
+import org.jetbrains.kotlin.psi.KtFunction
 
 /**
  * User: serg-v
@@ -37,11 +38,7 @@ class ZNaviLeftAction : AnAction() {
                     .append(containingMethod?.name ?: "none")
                     .append("\n")
             if (containingMethod != null) {
-                ShowUsagesAction.startFindUsages(
-                        containingMethod,
-                        JBPopupFactory.getInstance().guessBestPopupLocation(anActionEvent.dataContext),
-                        editor
-                )
+                startFindUsages(containingMethod, anActionEvent, editor)
 
 
                 val containingClass: PsiClass? = containingMethod.containingClass
@@ -50,7 +47,19 @@ class ZNaviLeftAction : AnAction() {
                         .append(if (containingClass != null) containingClass.name else "none")
                         .append("\n")
             }
+            val kotlinFunction = PsiTreeUtil.getParentOfType(element, KtFunction::class.java)
+            if (kotlinFunction != null) {
+                startFindUsages(kotlinFunction, anActionEvent, editor)
+            }
         }
         //Messages.showMessageDialog(anActionEvent.project, infoBuilder.toString(), "PSI Info", null)
+    }
+
+    private fun startFindUsages(containingMethod: PsiElement, anActionEvent: AnActionEvent, editor: Editor?) {
+        ShowUsagesAction.startFindUsages(
+                containingMethod,
+                JBPopupFactory.getInstance().guessBestPopupLocation(anActionEvent.dataContext),
+                editor
+        )
     }
 }
