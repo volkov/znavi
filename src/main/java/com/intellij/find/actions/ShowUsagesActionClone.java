@@ -1082,7 +1082,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
         return;
       }
       JComponent label = createHintComponent(
-        suggestSecondInvocation(hint, getSecondInvocationHint(actionHandler)),
+        suggestSecondInvocation(hint, /*getSecondInvocationHint(actionHandler)*/ null), //do not suggest second invocation
         isWarning,
         createSettingsButton(
           project,
