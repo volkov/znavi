@@ -6,6 +6,7 @@
     <!-- Product and plugin compatibility requirements -->
     <!-- https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.github.volkov.znavi.services.MyApplicationService"/>
@@ -23,5 +24,6 @@
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl Y"/>
         </action>
         <action id="com.github.volkov.znavi.ZNaviUpAction" class="com.github.volkov.znavi.ZNaviUpAction" text="ZNavi up"/>
+        <action id="com.github.volkov.znavi.ZNaviLeftAction" class="com.github.volkov.znavi.ZNaviLeftAction" text="ZNavi left"/>
     </actions>
 </idea-plugin>

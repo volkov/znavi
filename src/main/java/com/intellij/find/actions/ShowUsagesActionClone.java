@@ -186,6 +186,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
       showSymbolUsages(project, e.getDataContext(), direction);
     }
     else {
+      System.out.println("###Running psi usages");
       showPsiUsages(project, e, popupPosition, direction);
     }
   }
