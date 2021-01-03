@@ -7,11 +7,9 @@ import com.intellij.psi.util.PsiTreeUtil
 
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.JBPopupFactory
 
 import com.intellij.psi.*
-import com.intellij.ui.popup.PopupPositionManager
 import org.jetbrains.kotlin.psi.KtFunction
 
 /**
