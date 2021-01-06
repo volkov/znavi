@@ -295,7 +295,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
   private static ShowUsagesActionHandler createActionHandler(@NotNull FindUsagesHandlerBase handler, @NotNull FindUsagesOptions options) {
     // show super method warning dialogs before starting finding usages
     PsiElement[] primaryElements = handler.getPrimaryElements();
-    PsiElement[] secondaryElements = handler.getSecondaryElements();
+    PsiElement[] secondaryElements = PsiElement.EMPTY_ARRAY; //handler.getSecondaryElements(); //fixme accessor dialog
     String searchString = FindBundle.message(
       "find.usages.of.element.tab.name",
       options.generateUsagesString(), UsageViewUtil.getLongName(handler.getPsiElement())
@@ -342,7 +342,7 @@ public class ShowUsagesActionClone extends AnAction implements PopupAction, Hint
         Project project = handler.getProject();
         FindUsagesManager findUsagesManager = ((FindManagerImpl)FindManager.getInstance(project)).getFindUsagesManager();
         findUsagesManager.findUsages(
-          handler.getPrimaryElements(), handler.getSecondaryElements(),
+          handler.getPrimaryElements(), PsiElement.EMPTY_ARRAY /*handler.getSecondaryElements()*/, //fixme accessor dialog
           handler, options,
           FindSettings.getInstance().isSkipResultsWithOneUsage()
         );
