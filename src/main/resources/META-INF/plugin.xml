@@ -23,9 +23,13 @@
         <action id="com.github.volkov.znavi.ZNaviDownAction" class="com.github.volkov.znavi.ZNaviDownAction" text="ZNavi down"
                 description="Navigation">
             <add-to-group group-id="ToolsMenu" anchor="first"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="ctrl Y"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="alt U"/>
         </action>
-        <action id="com.github.volkov.znavi.ZNaviUpAction" class="com.github.volkov.znavi.ZNaviUpAction" text="ZNavi up"/>
-        <action id="com.github.volkov.znavi.ZNaviLeftAction" class="com.github.volkov.znavi.ZNaviLeftAction" text="ZNavi left"/>
+        <action id="com.github.volkov.znavi.ZNaviUpAction" class="com.github.volkov.znavi.ZNaviUpAction" text="ZNavi up">
+            <keyboard-shortcut keymap="$default" first-keystroke="alt I"/>
+        </action>
+        <action id="com.github.volkov.znavi.ZNaviLeftAction" class="com.github.volkov.znavi.ZNaviLeftAction" text="ZNavi left">
+            <keyboard-shortcut keymap="$default" first-keystroke="alt H"/>
+        </action>
     </actions>
 </idea-plugin>
