@@ -10,7 +10,6 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ui.popup.JBPopupFactory
 
 import com.intellij.psi.*
-import com.jetbrains.python.psi.PyFunction
 import org.jetbrains.kotlin.psi.KtFunction
 
 /**
@@ -50,10 +49,17 @@ class ZNaviLeftAction : AnAction() {
             if (kotlinFunction != null) {
                 startFindUsages(kotlinFunction, anActionEvent, editor)
             }
-            val pyFunction = PsiTreeUtil.getParentOfType(element, PyFunction::class.java)
-            if (pyFunction != null) {
-                startFindUsages(pyFunction, anActionEvent, editor)
+            try {
+                val pyFunctionClass = Class.forName("com.jetbrains.python.psi.PyFunction") as Class<PsiElement>
+                val pyFunction = PsiTreeUtil.getParentOfType(element, pyFunctionClass)
+                if (pyFunction != null) {
+                    startFindUsages(pyFunction, anActionEvent, editor)
+                }
+            } catch (e: ClassNotFoundException) {
+                //no python
             }
+
+
         }
         //Messages.showMessageDialog(anActionEvent.project, infoBuilder.toString(), "PSI Info", null)
     }

@@ -8,7 +8,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.kotlin</depends>
-    <depends>Pythonid</depends>
+    <depends optional="true" config-file="znavi-withPython.xml">Pythonid</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.github.volkov.znavi.services.MyApplicationService"/>
