@@ -4,20 +4,24 @@
 [![Version](https://img.shields.io/jetbrains/plugin/v/15771.svg)](https://plugins.jetbrains.com/plugin/15771)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/15771.svg)](https://plugins.jetbrains.com/plugin/15771)
 
+<!-- Plugin description -->
+
+* Show usages of containing method (`alt H`)
+* Navigate to next(`alt U`)/previous(`alt I`) usage of element under cursor
+
+"Find usages" intellij action with call hierarchy is very powerful, but it always opens in tool window. 
+Current plugin allows to make one step of call hierarchy with popup menu ("Show usages of containing method").
+
+Also plugin adds navigation to next/previous usage of element under cursor. 
+It's interation over "Show usages" popup without opening popup.
+
+Most of code copy pasted from origina intellij actions.
+<!-- Plugin description end -->
 ## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Verify the [pluginGroup](/gradle.properties), [plugin ID](/src/main/resources/META-INF/plugin.xml) and [sources package](/src/main/kotlin).
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html).
-- [ ] [Publish a plugin manually](https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/publishing_plugin.html) for the first time.
-- [ ] Set the Plugin ID in the above README badges.
 - [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html).
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
-<!-- Plugin description -->
-Experimental navigation.
-* Navigate to next(`alt U`)/previous(`alt I`) usage of element under cursor
-* Show usages of current method (`alt H`)
-<!-- Plugin description end -->
+
 
 ## Installation
 
