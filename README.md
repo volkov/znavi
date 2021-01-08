@@ -15,8 +15,8 @@
 
 <!-- Plugin description -->
 Experimental navigation.
-* Navigate to next/previous usage of element under cursor
-* Show usages of current method
+* Navigate to next(`alt U`)/previous(`alt I`) usage of element under cursor
+* Show usages of current method (`alt H`)
 <!-- Plugin description end -->
 
 ## Installation
