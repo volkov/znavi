@@ -17,11 +17,6 @@ It's interation over "Show usages" popup without opening popup.
 
 Most of code copy pasted from origina intellij actions.
 <!-- Plugin description end -->
-## Template ToDo list
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
-
-
 
 ## Installation
 
