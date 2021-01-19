@@ -31,7 +31,7 @@
         <action id="com.github.volkov.znavi.ZNaviLeftAction" class="com.github.volkov.znavi.ZNaviLeftAction" text="ZNavi Show Usages Of Containing Method">
             <keyboard-shortcut keymap="$default" first-keystroke="alt H"/>
         </action>
-        <action id="com.github.volkov.znavi.GoToParameterDeclaration" class="com.github.volkov.znavi.GoToParameterDeclaration"
+        <action id="com.github.volkov.znavi.ZNaviGoToParameterDeclaration" class="com.github.volkov.znavi.ZNaviGoToParameterDeclaration"
                 text="ZNavi Go To Parameter Declaration"/>
     </actions>
 </idea-plugin>
