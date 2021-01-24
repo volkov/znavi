@@ -21,7 +21,10 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
 
             val targetElement = TargetElementUtil.getInstance()
                     .findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, editor.caretModel.offset)
-            val navigationElement = targetElement!!.navigationElement
+
+            println(targetElement!!.javaClass) //hope this is psi method call expression
+
+            val navigationElement = targetElement.navigationElement
             val trueNavigationElement = TargetElementUtil.getInstance().getGotoDeclarationTarget(targetElement, navigationElement)
             val navigatable = if (trueNavigationElement is Navigatable) trueNavigationElement else EditSourceUtil.getDescriptor(trueNavigationElement)
             if (navigatable != null && navigatable.canNavigate()) {
