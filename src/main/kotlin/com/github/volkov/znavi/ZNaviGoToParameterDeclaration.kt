@@ -6,9 +6,10 @@ import com.intellij.ide.util.EditSourceUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiMethodCallExpression
+import com.intellij.psi.PsiCallExpression
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
  * User: serg-v
@@ -22,25 +23,34 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
         val file = e.getData(CommonDataKeys.PSI_FILE)
         if (file != null && editor != null) {
 
-            var targetElement = TargetElementUtil.getInstance()
-                    .findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, editor.caretModel.offset)
+            val offset = editor.caretModel.offset
+            val underCursor = file.findElementAt(offset)
 
-            println("### target element")
-            println(targetElement!!.javaClass) //hope this is psi method call expression
+            val anyCall = PsiTreeUtil.getParentOfType(underCursor, PsiCallExpression::class.java)
+            val anyOffset = anyCall!!.startOffset
+            println("### any call $anyOffset")
+            println(anyCall.javaClass)
+            println(anyCall)
 
-            targetElement = PsiTreeUtil.getParentOfType(targetElement, PsiMethodCallExpression::class.java)
+            val methodTarget = anyCall.resolveMethod()
+            println("### method target")
+            println(methodTarget!!.javaClass)
 
-            println("### new target element")
-            println(targetElement!!.javaClass)
+            //TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, anyOffset)
 
-            val navigationElement = targetElement.navigationElement
-            val trueNavigationElement = TargetElementUtil.getInstance().getGotoDeclarationTarget(targetElement, navigationElement)
-            val navigatable = if (trueNavigationElement is Navigatable) trueNavigationElement else EditSourceUtil.getDescriptor(trueNavigationElement)
+            val navigationElement = methodTarget.navigationElement
+            val trueNavigationElement = TargetElementUtil.getInstance().getGotoDeclarationTarget(methodTarget, navigationElement)
+
+            val navigatable =
+                    if (trueNavigationElement is Navigatable)
+                        trueNavigationElement
+                    else EditSourceUtil.getDescriptor(trueNavigationElement)
+
             if (navigatable != null && navigatable.canNavigate()) {
                 navigatable.navigate(true)
             }
 
-            println(targetElement)
+            println(methodTarget)
             println("ok")
         }
     }
