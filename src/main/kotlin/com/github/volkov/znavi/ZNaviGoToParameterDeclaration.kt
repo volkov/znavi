@@ -7,7 +7,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiCallExpression
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
@@ -23,9 +25,9 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
         if (file != null && editor != null) {
 
             val offset = editor.caretModel.offset
-            val underCursor = file.findElementAt(offset)
+            val underCursor = file.findElementAt(offset)!!
 
-            val anyCall = PsiTreeUtil.getParentOfType(underCursor, PsiCallExpression::class.java)
+            val anyCall = getParentOfType(underCursor, PsiCallExpression::class.java)
             val anyOffset = anyCall!!.startOffset
             println("### any call $anyOffset")
             println(anyCall.javaClass)
@@ -34,6 +36,8 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
             val methodTarget = anyCall.resolveMethod()
             println("### method target")
             println(methodTarget!!.javaClass)
+
+            println("### arg index " + findParameterIndex(underCursor))
 
             //TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, anyOffset)
 
@@ -52,5 +56,22 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
             println(methodTarget)
             println("ok")
         }
+    }
+
+    private fun findParameterIndex(element: PsiElement): Int {
+        var reference: PsiElement? = getParentOfType(element, PsiReferenceExpression::class.java)
+        var res = 0
+        reference = reference?.prevSibling
+        while (reference != null) {
+            if (reference is PsiReferenceExpression) {
+                res++
+            }
+            reference = reference.prevSibling
+            if (res > 100) {
+                println("### oops")
+                return res
+            }
+        }
+        return res
     }
 }
