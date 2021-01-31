@@ -6,9 +6,8 @@ import com.intellij.ide.util.EditSourceUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiCallExpression
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.*
+import com.intellij.psi.util.PsiTreeUtil.getChildrenOfType
 import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
@@ -30,32 +29,53 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
             val anyCall = getParentOfType(underCursor, PsiCallExpression::class.java)
             val anyOffset = anyCall!!.startOffset
             println("### any call $anyOffset")
-            println(anyCall.javaClass)
             println(anyCall)
 
-            val methodTarget = anyCall.resolveMethod()
+            val methodTarget = anyCall.resolveMethod()!!
             println("### method target")
-            println(methodTarget!!.javaClass)
+            println(methodTarget)
 
-            println("### arg index " + findParameterIndex(underCursor))
+            val parameterIndex = findParameterIndex(underCursor)
+            println("### arg index " + parameterIndex)
 
             //TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, anyOffset)
 
             val navigationElement = methodTarget.navigationElement
             val trueNavigationElement = TargetElementUtil.getInstance().getGotoDeclarationTarget(methodTarget, navigationElement)
+            println("### true navigation elemnent")
+            println(trueNavigationElement)
+            val parameterElement = findParameter(trueNavigationElement, parameterIndex)
+            println("### parameter element")
+            println(parameterElement)
 
             val navigatable =
-                    if (trueNavigationElement is Navigatable)
-                        trueNavigationElement
-                    else EditSourceUtil.getDescriptor(trueNavigationElement)
+                    if (parameterElement is Navigatable)
+                        parameterElement
+                    else EditSourceUtil.getDescriptor(parameterElement)
 
             if (navigatable != null && navigatable.canNavigate()) {
                 navigatable.navigate(true)
             }
 
-            println(methodTarget)
             println("ok")
         }
+    }
+
+    private fun findParameter(element: PsiElement, index: Int): PsiElement {
+        var paramInex = -1
+        var lastParameter : PsiElement? = null
+        println("### children")
+        for (child in getChildrenOfType(element, PsiParameterList::class.java)[0].children) {
+            println(child)
+            if (child is PsiParameter) {
+                lastParameter = child
+                paramInex++
+                if (paramInex == index) {
+                    return child
+                }
+            }
+        }
+        return lastParameter!!
     }
 
     private fun findParameterIndex(element: PsiElement): Int {
