@@ -25,9 +25,10 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
 
             val offset = editor.caretModel.offset
             val underCursor = file.findElementAt(offset)!!
+            println("### under cursor: $underCursor")
 
-            val anyCall = getParentOfType(underCursor, PsiCallExpression::class.java)
-            val anyOffset = anyCall!!.startOffset
+            val anyCall = getParentOfType(underCursor, PsiCallExpression::class.java) ?: return //should support other languages
+            val anyOffset = anyCall.startOffset
             println("### any call $anyOffset")
             println(anyCall)
 
@@ -83,7 +84,7 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
         var res = 0
         reference = reference?.prevSibling
         while (reference != null) {
-            if (reference is PsiReferenceExpression) {
+            if (reference is PsiExpression) {
                 res++
             }
             reference = reference.prevSibling
