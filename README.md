@@ -5,12 +5,6 @@
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/15771.svg)](https://plugins.jetbrains.com/plugin/15771)
 
 <!-- Plugin description -->
-
-* Show usages of containing method (`alt H`)
-
-
-* Navigate to next(`alt U`)/previous(`alt I`) usage of element under cursor
-
 ## Show usages of containg method (`alt H`)
 "Find usages" intellij action with call hierarchy is very powerful, but it always opens in tool window. 
 Current plugin allows making one step of call hierarchy with popup menu ("Show usages of containing method").
