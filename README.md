@@ -7,15 +7,25 @@
 <!-- Plugin description -->
 
 * Show usages of containing method (`alt H`)
+
+
 * Navigate to next(`alt U`)/previous(`alt I`) usage of element under cursor
 
+## Show usages of containg method (`alt H`)
 "Find usages" intellij action with call hierarchy is very powerful, but it always opens in tool window. 
-Current plugin allows to make one step of call hierarchy with popup menu ("Show usages of containing method").
+Current plugin allows making one step of call hierarchy with popup menu ("Show usages of containing method").
 
+## Go to parameter declaration (`alt O`)
+Navigate to parameter declaration from argument. 
+Usefull with idea builtin "Next Identifier" or "Navigate to next usage" from this plugin.
+
+[Demo video](https://youtu.be/ZOxGMqgNVo0)
+
+## Navigate to next(`alt U`)/previous(`alt I`) usage
 Also plugin adds navigation to next/previous usage of element under cursor. 
 It's interation over "Show usages" popup without opening popup.
 
-Most of code copy pasted from origina intellij actions.
+Most of the code copied and pasted from origina intellij actions.
 <!-- Plugin description end -->
 
 ## Installation

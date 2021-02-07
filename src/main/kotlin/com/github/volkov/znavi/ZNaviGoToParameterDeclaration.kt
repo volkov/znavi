@@ -37,7 +37,7 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
             println(methodTarget)
 
             val parameterIndex = findParameterIndex(underCursor)
-            println("### arg index " + parameterIndex)
+            println("### arg index $parameterIndex")
 
             //TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, anyOffset)
 
