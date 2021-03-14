@@ -21,45 +21,44 @@ class ZNaviGoToParameterDeclaration : GotoDeclarationAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val editor = e.getData(CommonDataKeys.EDITOR)
         val file = e.getData(CommonDataKeys.PSI_FILE)
-        if (file != null && editor != null) {
+        if (file == null || editor == null) return
 
-            val offset = editor.caretModel.offset
-            val underCursor = file.findElementAt(offset)!!
-            println("### under cursor: $underCursor")
+        val offset = editor.caretModel.offset
+        val underCursor = file.findElementAt(offset)!!
+        println("### under cursor: $underCursor")
 
-            val anyCall = getParentOfType(underCursor, PsiCallExpression::class.java) ?: return //should support other languages
-            val anyOffset = anyCall.startOffset
-            println("### any call $anyOffset")
-            println(anyCall)
+        val anyCall = getParentOfType(underCursor, PsiCallExpression::class.java) ?: return //should support other languages
+        val anyOffset = anyCall.startOffset
+        println("### any call $anyOffset")
+        println(anyCall)
 
-            val methodTarget = anyCall.resolveMethod()!!
-            println("### method target")
-            println(methodTarget)
+        val methodTarget = anyCall.resolveMethod()!!
+        println("### method target")
+        println(methodTarget)
 
-            val parameterIndex = findParameterIndex(underCursor)
-            println("### arg index $parameterIndex")
+        val parameterIndex = findParameterIndex(underCursor)
+        println("### arg index $parameterIndex")
 
-            //TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, anyOffset)
+        //TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.getInstance().allAccepted, anyOffset)
 
-            val navigationElement = methodTarget.navigationElement
-            val trueNavigationElement = TargetElementUtil.getInstance().getGotoDeclarationTarget(methodTarget, navigationElement)
-            println("### true navigation elemnent")
-            println(trueNavigationElement)
-            val parameterElement = findParameter(trueNavigationElement, parameterIndex)
-            println("### parameter element")
-            println(parameterElement)
+        val navigationElement = methodTarget.navigationElement
+        val trueNavigationElement = TargetElementUtil.getInstance().getGotoDeclarationTarget(methodTarget, navigationElement)
+        println("### true navigation elemnent")
+        println(trueNavigationElement)
+        val parameterElement = findParameter(trueNavigationElement, parameterIndex)
+        println("### parameter element")
+        println(parameterElement)
 
-            val navigatable =
-                    if (parameterElement is Navigatable)
-                        parameterElement
-                    else EditSourceUtil.getDescriptor(parameterElement)
+        val navigatable =
+                if (parameterElement is Navigatable)
+                    parameterElement
+                else EditSourceUtil.getDescriptor(parameterElement)
 
-            if (navigatable != null && navigatable.canNavigate()) {
-                navigatable.navigate(true)
-            }
-
-            println("ok")
+        if (navigatable != null && navigatable.canNavigate()) {
+            navigatable.navigate(true)
         }
+
+        println("ok")
     }
 
     private fun findParameter(element: PsiElement, index: Int): PsiElement {
